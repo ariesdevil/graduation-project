@@ -43,7 +43,8 @@ Bishe* init_bishe()
     inet_pton(AF_INET, DESTADDR, &(bishe->dest_addr.sin_addr));
     bishe->dest_addr.sin_port = htons(DESTPORT);
 
-    if (-1 == bind(bishe->dest_socket_fd, (struct sockaddr*)&(bishe->dest_addr), sizeof(struct sockaddr_in)))
+    if (-1 == bind(bishe->dest_socket_fd, 
+                (struct sockaddr*)&(bishe->dest_addr), sizeof(struct sockaddr_in)))
         err_quit("bind error");
 
     if (NULL == (bishe->fp = fopen("video.h264", "wb")))
@@ -71,7 +72,8 @@ void forward_save(Bishe* bishe)
     *source_addr_len = sizeof(struct sockaddr_in);
 
     for (;;) {
-        if (-1 == (n = recvfrom(bishe->dest_socket_fd, buf, BUFSIZE, 0, (struct sockaddr*)&(bishe->source_addr), source_addr_len))) {
+        if (-1 == (n = recvfrom(bishe->dest_socket_fd, buf, BUFSIZE, 0, 
+                        (struct sockaddr*)&(bishe->source_addr), source_addr_len))) {
             err_quit("recvfrom error");
         } else if (0 == n) {
             return;
