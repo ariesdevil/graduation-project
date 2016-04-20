@@ -10,6 +10,7 @@
 #define TOTAL_LENGTH BUFSIZE
 #define LENGTH_PER_SLICE 1024
 #define DEG_MAX 10
+#define DROPS 30 //一个源码包喷30滴，DROPS > TOTAL_LENGTH / LENGTH_PER_SLICE
 
 typedef struct LT {
     char encoded_data[LENGTH_PER_SLICE];

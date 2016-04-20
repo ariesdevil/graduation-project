@@ -4,14 +4,14 @@
 #include <math.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
+#include "bishe.h"
+
 #define err_quit(msg) \
     do { perror(msg); exit(EXIT_FAILURE); } while (0)
-#define BUFSIZE 2048
 #define SOURCEADDR "192.168.1.105"
 #define SOURCEPORT 8080
 #define DESTADDR "192.168.1.100"
@@ -22,6 +22,8 @@ typedef struct Bishe {
     struct sockaddr_in source_addr;
     struct sockaddr_in dest_addr;
     FILE* fp;
+
+    LT lt;
 } Bishe;
 
 Bishe* init_bishe()
@@ -63,37 +65,31 @@ void forward_save(Bishe* bishe)
 {
     ssize_t n;
     char buf[BUFSIZE];
-    int file_no = fileno(bishe->fp);
-    fd_set wset;
-    FD_ZERO(&wset);
 
     socklen_t* source_addr_len = (socklen_t*)malloc(sizeof(socklen_t));
     if (NULL == source_addr_len) err_quit("malloc error");
     *source_addr_len = sizeof(struct sockaddr_in);
 
     for (;;) {
-        if (-1 == (n = recvfrom(bishe->dest_socket_fd, buf, BUFSIZE, 0, 
+        if (-1 == (n = recvfrom(bishe->dest_socket_fd, &bishe->lt, sizeof(LT), 0, 
                         (struct sockaddr*)&(bishe->source_addr), source_addr_len))) {
             err_quit("recvfrom error");
         } else if (0 == n) {
             return;
         } else {
-            FD_SET(STDOUT_FILENO, &wset);
-            FD_SET(file_no, &wset);
+            //喷多少，接多少？？？
+            printf("\n度数：%d\t源包索引：", bishe->lt.deg);
+            for (int i = 0; i < bishe->lt.deg; i++)
+                printf("%d ", bishe->lt.slices[i]);
         }
 
-        if (-1 == select(fmax(STDOUT_FILENO, file_no) + 1, NULL , &wset, NULL, NULL))
-            err_quit("select error");
+        /*
+        if (BUFSIZE != (n = write(STDOUT_FILENO, buf, n)))
+            err_quit("write error");
 
-        if (FD_ISSET(STDOUT_FILENO, &wset)) {
-            if (BUFSIZE != (n = write(STDOUT_FILENO, buf, n)))
-                err_quit("write error");
-        }
-
-        if (FD_ISSET(file_no, &wset)) {
-            if (BUFSIZE != fwrite(buf, 1, n, bishe->fp))
-                err_quit("fwrite error");
-        }
+        if (BUFSIZE != fwrite(buf, 1, n, bishe->fp))
+            err_quit("fwrite error");
+        */
     }
 }
 

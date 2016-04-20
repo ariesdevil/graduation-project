@@ -74,12 +74,15 @@ void forward_save(Bishe* bishe)
             if (BUFSIZE != fwrite(buf, 1, BUFSIZE, bishe->fp))
                 err_quit("fwrite error");
 
-            encode(buf, BUFSIZE, &bishe->lt);
 
-            if (sizeof(LT) != sendto(bishe->source_socket_fd, &bishe->lt, sizeof(LT), 0, 
-                        (struct sockaddr*)&(bishe->dest_addr), sizeof(struct sockaddr_in)))
-                err_quit("sendto error");
-        }
+            for (int i = 0; i < DROPS; i++) {
+                    encode(buf, BUFSIZE, &bishe->lt);
+
+                    if (sizeof(LT) != sendto(bishe->source_socket_fd, &bishe->lt, sizeof(LT), 0, 
+                                (struct sockaddr*)&(bishe->dest_addr), sizeof(struct sockaddr_in)))
+                        err_quit("sendto error");
+                }
+            }
 
     }
 }
