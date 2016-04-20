@@ -2,16 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include <errno.h>
 #include <unistd.h>
-#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define err_quit(msg) \
-    do { perror(msg); exit(EXIT_FAILURE); } while (0)
-#define BUFSIZE 2048
+#include "bishe.h"
+
 #define SOURCEADDR "192.168.1.105"
 #define SOURCEPORT 8080
 #define DESTADDR "192.168.1.100"
@@ -22,6 +21,8 @@ typedef struct Bishe {
     struct sockaddr_in source_addr;
     struct sockaddr_in dest_addr;
     FILE* fp;
+
+    LT lt;
 } Bishe;
 
 Bishe* init_bishe()
@@ -63,9 +64,6 @@ void forward_save(Bishe* bishe)
 {
     ssize_t n;
     char buf[BUFSIZE];
-    fd_set wset;
-    FD_ZERO(&wset);
-    int file_no = fileno(bishe->fp);
 
     for (;;) {
         if (-1 == (n = read(STDIN_FILENO, buf, BUFSIZE))) {
@@ -73,23 +71,16 @@ void forward_save(Bishe* bishe)
         } else if (0 == n) {
             return;
         } else {
-            FD_SET(bishe->source_socket_fd, &wset);
-            FD_SET(file_no, &wset);
-        }
+            if (BUFSIZE != fwrite(buf, 1, BUFSIZE, bishe->fp))
+                err_quit("fwrite error");
 
-        if (-1 == select(fmax(bishe->source_socket_fd, file_no) + 1, NULL, &wset, NULL, NULL)) 
-            err_quit("select error");
+            encode(buf, BUFSIZE, &bishe->lt);
 
-        if (FD_ISSET(bishe->source_socket_fd, &wset)) {
-            if (BUFSIZE != sendto(bishe->source_socket_fd, buf, BUFSIZE, 0, 
+            if (sizeof(LT) != sendto(bishe->source_socket_fd, &bishe->lt, sizeof(LT), 0, 
                         (struct sockaddr*)&(bishe->dest_addr), sizeof(struct sockaddr_in)))
                 err_quit("sendto error");
         }
 
-        if (FD_ISSET(file_no, &wset)) {
-            if (BUFSIZE != fwrite(buf, 1, BUFSIZE, bishe->fp))
-                err_quit("fwrite error");
-        }
     }
 }
 
