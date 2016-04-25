@@ -1,34 +1,54 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef BISHE_H
+#define BISHE_H
 
-#include <stdlib.h>
+#include <stdint.h>
+#include <stddef.h>
 
 #define err_quit(msg) \
-    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+    do { perror(msg); exit(EXIT_FAILURE); } while(0)
 
-#define BUFSIZE 10240
-#define TOTAL_LENGTH BUFSIZE
-#define LENGTH_PER_SLICE 1024
-#define DEG_MAX 10
-#define DROPS 30 //一个源码包喷30滴，DROPS > TOTAL_LENGTH / LENGTH_PER_SLICE
+/*一滴数据的长度，或者一个未编码的数据块的切片的长度，这是一个重要的约定参数*/
+#define SLICE_LENGTH 1024
 
-typedef struct LT {
-    char encoded_data[LENGTH_PER_SLICE];
-    int deg;
-    int slices[DEG_MAX]; //被随机选中的deg个片段，至多10个片段
-} LT;
+/*待编码的数据块的切片数目*/
+#define SLICES 10
+
+/*待编码的数据块的长度*/
+#define TOTAL_LENGTH (SLICE_LENGTH * SLICES)
+
+/*可能出现的度的种类，或度的数目，可能的度有[1, DEG_MAX]*/
+#define DEG_MAX SLICES
+
+/*对于一个数据块，喷泉码编码器喷的滴数*/
+#define DROPS 60
+
+#define PACKET_LENGTH 1 + 1 + 10 + SLICE_LENGTH
+
+/******************编码后的数据块的最小单位****************/
+typedef struct Packet {
+    char data[PACKET_LENGTH];//第1个byte表示RawDataBlock的索引，第2个byte表示度数，后10个字节表示切片组合，置为'1'的被选中做异或，置为'0'的没有被选中
+} Packet;
+
+/******************补零的原始数据块****************/
+typedef struct RawDataBlock {
+    char data[TOTAL_LENGTH]; //第1个byte表示索引，再4byte表示原始长度，后续表示数据
+} RawDataBlock;
+
+RawDataBlock* RawDataBlock_FromRawData(char* data, int size);
+
+RawDataBlock* RawDataBlock_FromPackets(Packet* packets, int drops);
+
+//喷1滴
+Packet* Packet_FromRawDataBlock(RawDataBlock* rdb);
 
 
-/*理想孤子分布的度发生器*/
-int random_deg();
+//度发生器
+int8_t gen_deg();
 
-/*N个数[0 ~ N-1]均匀选取M个数*/
-void random_select(int* selected, ssize_t M , ssize_t N);
+//随机选择切片
+void choose_slice(char* chosen, int M, int N);
 
-/*喷泉码编码一次，喷一滴*/
-void encode(char* buf, ssize_t length, LT* ltp);
-
-/*N个M长的切片做异或运算，结果保存到dst*/
-void xor_slices(char* data, ssize_t M, ssize_t N, char* dst);
+//切片做异或运算，存入left
+void slice_xor(char* left, char* right, int N);
 
 #endif

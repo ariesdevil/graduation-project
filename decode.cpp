@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+#include <time.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -10,99 +10,69 @@
 
 #include "bishe.h"
 
-#define err_quit(msg) \
-    do { perror(msg); exit(EXIT_FAILURE); } while (0)
-#define SOURCEADDR "192.168.1.105"
-#define SOURCEPORT 8080
-#define DESTADDR "192.168.1.100"
-#define DESTPORT 8080
+#define SENDER_ADDR "192.168.1.105"
+#define SENDER_PORT 8080
+#define RECEIVER_ADDR "192.168.1.100"
+#define RECEIVER_PORT 8080
 
-typedef struct Bishe {
-    int dest_socket_fd;
-    struct sockaddr_in source_addr;
-    struct sockaddr_in dest_addr;
-    FILE* fp;
 
-    LT lt;
-} Bishe;
-
-Bishe* init_bishe()
-{
-    Bishe* bishe = (Bishe*)malloc(sizeof(Bishe));
-    if (NULL == bishe) err_quit("malloc error");
-    
-    int dest_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (-1 == dest_socket_fd) err_quit("socket error");
-    bishe->dest_socket_fd = dest_socket_fd;
-
-    bzero(&(bishe->source_addr), sizeof(struct sockaddr_in));
-    bishe->source_addr.sin_family = AF_INET;
-    inet_pton(AF_INET, SOURCEADDR, &(bishe->source_addr.sin_addr));
-    bishe->source_addr.sin_port = htons(SOURCEPORT);
-
-    bzero(&(bishe->dest_addr), sizeof(struct sockaddr_in));
-    bishe->dest_addr.sin_family = AF_INET;
-    inet_pton(AF_INET, DESTADDR, &(bishe->dest_addr.sin_addr));
-    bishe->dest_addr.sin_port = htons(DESTPORT);
-
-    if (-1 == bind(bishe->dest_socket_fd, 
-                (struct sockaddr*)&(bishe->dest_addr), sizeof(struct sockaddr_in)))
-        err_quit("bind error");
-
-    if (NULL == (bishe->fp = fopen("video.h264", "wb")))
-        err_quit("fopen error");
-
-    return bishe;
-}
-
-void free_bishe(Bishe* bishe)
-{
-    if (EOF == fclose(bishe->fp)) err_quit("fclose error");
-    free(bishe);
-}
-
-void forward_save(Bishe* bishe)
-{
-    ssize_t n;
-    char buf[BUFSIZE];
-
-    socklen_t* source_addr_len = (socklen_t*)malloc(sizeof(socklen_t));
-    if (NULL == source_addr_len) err_quit("malloc error");
-    *source_addr_len = sizeof(struct sockaddr_in);
-
-    for (;;) {
-        if (-1 == (n = recvfrom(bishe->dest_socket_fd, &bishe->lt, sizeof(LT), 0, 
-                        (struct sockaddr*)&(bishe->source_addr), source_addr_len))) {
-            err_quit("recvfrom error");
-        } else if (0 == n) {
-            return;
-        } else {
-            //喷多少，接多少？？？
-            printf("\n度数：%d\t源包索引：", bishe->lt.deg);
-            for (int i = 0; i < bishe->lt.deg; i++)
-                printf("%d ", bishe->lt.slices[i]);
-        }
-
-        /*
-        if (BUFSIZE != (n = write(STDOUT_FILENO, buf, n)))
-            err_quit("write error");
-
-        if (BUFSIZE != fwrite(buf, 1, n, bishe->fp))
-            err_quit("fwrite error");
-        */
+int
+main(void) {
+    int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (-1 == sock_fd) {
+        err_quit("socket error");
     }
-}
 
-void save(Bishe* bishe)
-{
-    bishe->fp = fopen("video.h264", "wb");
-    if (NULL == bishe->fp) err_quit("fopen error");
-}
+    struct sockaddr_in sender_addr;
+    bzero(&sender_addr, sizeof(struct sockaddr_in));
+    sender_addr.sin_family = AF_INET;
+    inet_pton(AF_INET, SENDER_ADDR, &(sender_addr.sin_addr));
+    sender_addr.sin_port = htons(SENDER_PORT);
 
-int main(void)
-{
-    Bishe* bishe = init_bishe();
-    forward_save(bishe);
-    free_bishe(bishe);
+    struct sockaddr_in receiver_addr;
+    bzero(&receiver_addr, sizeof(struct sockaddr_in));
+    receiver_addr.sin_family = AF_INET;
+    inet_pton(AF_INET, RECEIVER_ADDR, &(receiver_addr.sin_addr));
+    receiver_addr.sin_port = htons(RECEIVER_PORT);
+
+    if (-1 == bind(sock_fd, (struct sockaddr*)&(receiver_addr), sizeof(struct sockaddr_in))) {
+        err_quit("bind error");
+    }
+
+    int n;
+    socklen_t* len = (socklen_t*)malloc(sizeof(socklen_t));
+    char buf[PACKET_LENGTH];
+    Packet packets[DROPS];
+    int8_t last_index; //上一滴所属原数据的索引
+    int8_t this_index; //这一滴所属原数据的索引
+    bool isfirstloop = true;
+    int i = 0;
+    bzero(buf, PACKET_LENGTH);
+    while (true) {
+        n = recvfrom(sock_fd, buf, PACKET_LENGTH, 0, (struct sockaddr*)&(sender_addr), len);
+        if (-1 == n) {
+            err_quit("recvfrom error");
+        } else if (PACKET_LENGTH != n) {
+            break;
+        } else {
+            this_index = buf[0];
+            if (isfirstloop || this_index == last_index) {
+                memcpy(packets[i].data, buf, PACKET_LENGTH);
+                i++;
+                isfirstloop = false;
+            } else {
+                RawDataBlock* rdb = RawDataBlock_FromPackets(packets, i);
+                if (rdb) {
+                    //fprintf(stderr, "index: %d\tlength: %d\n", *(int8_t*)(rdb->data), *(int32_t*)(rdb->data + 1));
+                    fwrite(rdb->data + 5, 1, *(int32_t*)(rdb->data + 1), stdout);
+                    }
+                free(rdb);
+                i = 0;
+                memcpy(packets[i].data, buf, PACKET_LENGTH);
+            }
+            last_index = this_index;
+        }
+    }
+    free(len);
     return 0;
 }
