@@ -11,24 +11,22 @@ RawDataBlock*
 RawDataBlock_FromRawData(char* data, int size) {
     assert(data);
     assert(TOTAL_LENGTH >= size + 5);
-    static int8_t index = 0;
-    if (127 > index) {
-        index++;
-    } else {
-        index = 0;
-    }
+    static int8_t index = 1;
     RawDataBlock* rdb = (RawDataBlock*)malloc(sizeof(RawDataBlock));
-    int32_t* p4 = (int32_t*)malloc(sizeof(4));
-    if (rdb && p4) {
+    if (rdb) {
         bzero(rdb->data, TOTAL_LENGTH);
         rdb->data[0] = index;
-        *p4 = size;
-        memcpy(rdb->data + 1, p4, 4);
-        memcpy(rdb->data + 1 + 4, data, size);
+        *(int32_t*)(rdb->data + 1) = size;
+        memcpy(rdb->data + 5, data, size);
+
+        if (127 > index) {
+            index++;
+        } else {
+            index = 1;
+        }
     } else {
         err_quit("malloc error");
     }
-    free(p4);
     return rdb;
 }
 
@@ -45,24 +43,19 @@ RawDataBlock_FromPackets(Packet* packets, int drops)
         for (int i = 0; i < drops; i++) {
             for (int j = 0; j < drops; j++) {
                 if (1 == packets[j].data[1]) {
-                    int k;
-                    for (k = 2; k < 2 + DEG_MAX; k++) {
-                        if ('1' == packets[j].data[k]) {
-                            break;
-                        }
-                    }
+                    int k = *(int16_t*)(packets[j].data + 2);
                     for (int m = 0; m < drops; m++) {
-                        if ('1' == packets[m].data[k]) {
-                            packets[m].data[k] = '0';
-                            packets[m].data[1]--;
+                        int n = Packet_contain(packets + m, k);
+                        if (-1 != n) {
+                            Packet_delete(packets + m , n);
                             if (m == j) {
-                                memcpy(rdb->data + SLICE_LENGTH* (k - 2), packets[m].data + 12, SLICE_LENGTH);
+                                memcpy(rdb->data + k * SLICE_LENGTH, packets[m].data + 22, SLICE_LENGTH);
                             } else {
-                                slice_xor(packets[m].data + 12, packets[j].data + 12, SLICE_LENGTH);
+                                slice_xor(packets[m].data + 22, packets[j].data + 22, SLICE_LENGTH);
                             }
                         }
                     }
-                    s.insert(k - 2);
+                    s.insert(k);
                     if (SLICES == s.size()) {
                         success = true;
                         goto success;
@@ -86,16 +79,54 @@ Packet*
 Packet_FromRawDataBlock(RawDataBlock* rdb) {
     assert(rdb);
     Packet* p = (Packet*)malloc(sizeof(Packet));
-    bzero(p->data, sizeof(p->data));
-    p->data[0] = rdb->data[0];
-    int8_t d = gen_deg();
-    p->data[1] = d;
-    choose_slice(p->data + 2, d, SLICES);
-    for (int8_t i = 0; i < SLICES; i++) {
-        if ('1' == *(p->data + 2 + i))
-            slice_xor(p->data + 12, rdb->data + i * SLICE_LENGTH, SLICE_LENGTH);
+    if (p) {
+        bzero(p->data, PACKET_LENGTH);
+        p->data[0] = rdb->data[0];
+        int8_t d = gen_deg();
+        p->data[1] = d;
+        choose_slice(p->data + 2, d, SLICES);
+        for (int8_t i = 0; i < d; i++) {
+            slice_xor(p->data + 22, rdb->data + *(int16_t*)(p->data + 2 + i * 2) * SLICE_LENGTH, SLICE_LENGTH);
+        }
+    } else {
+        err_quit("malloc error");
     }
     return p;
+}
+
+int
+Packet_contain(Packet* packet, int16_t k) {
+    assert(packet);
+    assert(k >= 0 && k < SLICES);
+    int d = packet->data[1];
+    for (int i = 0; i < d; i++)
+        if (k == *(int16_t*)(packet->data + 2 + i * 2))
+            return 2 + i * 2;
+    return -1;
+}
+
+int16_t
+Packet_delete(Packet* packet, int i) {
+    assert(packet);
+    assert(i >= 2 && i < 22);
+    int d = packet->data[1];
+    int16_t index = *(int16_t*)(packet->data + i);
+    int end = 2 + 2 * d;
+    int start = i;
+    memmove(packet->data + start, packet->data + start + 2, end - start - 2);
+    packet->data[1]--;
+    return index;
+}
+
+void
+Packet_print(Packet* packet)
+{
+    int degree = packet->data[1];
+    int index = packet->data[0];
+    fprintf(stderr, "index: %d\tdegree: %d\t", index, degree);
+    for (int i = 0; i < degree; i++)
+        fprintf(stderr, "%d ", *(int16_t*)(packet->data + 2 + i * 2));
+    fprintf(stderr, "\n");
 }
 
 int8_t
@@ -138,11 +169,12 @@ void
 choose_slice(char* chosen, int M, int N) {
     assert(chosen);
     assert(M <= N && M > 0);
-    memset(chosen, '0', N);
+    bzero(chosen, M);
     int select = M, remaining = N;
-    for (int i = 0; i < N; i++) {
+    for (int i = 0, k = 0; i < N; i++) {
         if (rand() % remaining < select) {
-            chosen[i] = '1';
+            *(int16_t*)(chosen + k) = i;
+            k += 2;
             select--;
         }
         remaining--;

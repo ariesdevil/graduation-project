@@ -10,24 +10,32 @@
 /*一滴数据的长度，或者一个未编码的数据块的切片的长度，这是一个重要的约定参数*/
 #define SLICE_LENGTH 1024
 
-/*待编码的数据块的切片数目*/
-#define SLICES 10
+/*可能出现的度的种类，或度的数目，可能的度有[1, DEG_MAX]*/
+#define DEG_MAX 10
+
+/*待编码的数据块的切片数目，即码长*/
+#define SLICES DEG_MAX
 
 /*待编码的数据块的长度*/
 #define TOTAL_LENGTH (SLICE_LENGTH * SLICES)
 
-/*可能出现的度的种类，或度的数目，可能的度有[1, DEG_MAX]*/
-#define DEG_MAX SLICES
-
 /*对于一个数据块，喷泉码编码器喷的滴数*/
-#define DROPS 60
+#define DROPS 5 * DEG_MAX
 
-#define PACKET_LENGTH 1 + 1 + 10 + SLICE_LENGTH
+#define PACKET_LENGTH 1 + 1 + 20 + SLICE_LENGTH
 
 /******************编码后的数据块的最小单位****************/
 typedef struct Packet {
-    char data[PACKET_LENGTH];//第1个byte表示RawDataBlock的索引，第2个byte表示度数，后10个字节表示切片组合，置为'1'的被选中做异或，置为'0'的没有被选中
+    char data[PACKET_LENGTH];//第1个byte表示RawDataBlock的索引，第2个byte表示度数，后20个字节表示切片组合
 } Packet;
+
+
+//k切片是否参与了Packet的构造，如果参与了，返回它在Packet->data的索引
+int Packet_contain(Packet* packet, int16_t k);
+//删除索引i对应的切片，并将度数减一
+int16_t Packet_delete(Packet* packet, int i);
+
+void Packet_print(Packet* packet);
 
 /******************补零的原始数据块****************/
 typedef struct RawDataBlock {
