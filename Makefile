@@ -69,4 +69,4 @@ UDPEncodedClient.o: UDPEncodedClient.cpp
 
 clean:
 	rm -rf *o 
-	find . -perm -u=rwx -a ! -name "start*"  -delete
+	find . -perm -u=rwx -a ! -name "start*" -a ! -regex "\./\..*"

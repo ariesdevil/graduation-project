@@ -17,8 +17,6 @@ class PaddingPackage;
 
 class Encoder
 {
-	friend class PaddingPackage;
-	friend class Encodedpackage;
 public:
 	Encoder(int k = 2000, int m = 3000, int l=128,
             const map<int, double>& pdf = {
