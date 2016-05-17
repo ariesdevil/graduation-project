@@ -90,7 +90,7 @@ Encoder::decode(vector<EncodedPackage>& eps)
 		const EncodedPackage& this_ep = eps.at(eps_index.back());
 		if (this_ep.d == 1) {
 			int index = this_ep.adjacency.front();
-            for (ep_index: eps_index) {
+            for (int ep_index: eps_index) {
 			//for (EncodedPackage& that_ep: eps) {
                 EncodedPackage& that_ep = eps.at(ep_index);
 				auto iter = find(that_ep.adjacency.cbegin(),
