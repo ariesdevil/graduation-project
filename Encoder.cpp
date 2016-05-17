@@ -75,18 +75,24 @@ Encoder::decode(vector<EncodedPackage>& eps)
 	assert(eps.size() <= m);
 	PaddingPackage p(*this);
 	set<EncodedPackage> s;
+    vector<int> eps_index;
+    for (int i = 0; i < eps.size(); i++) {
+        eps_index.push_back(i);
+    }
 
 	//auto end=unique(eps.begin(), eps.end());
 	//eps.erase(end, eps.end());
-	auto compare = [](const EncodedPackage& i, const EncodedPackage& j)
-					{ return i > j; };
-	while (!eps.empty()) {
-		make_heap(eps.begin(), eps.end(), compare);
-		pop_heap(eps.begin(), eps.end(), compare);
-		const EncodedPackage& this_ep = eps.back();
+	auto compare = [&eps](const int i, const int j)
+					{ return eps.at(i) > eps.at(j); };
+	while (!eps_index.empty()) {
+		make_heap(eps_index.begin(), eps_index.end(), compare);
+		pop_heap(eps_index.begin(), eps_index.end(), compare);
+		const EncodedPackage& this_ep = eps.at(eps_index.back());
 		if (this_ep.d == 1) {
 			int index = this_ep.adjacency.front();
-			for (EncodedPackage& that_ep: eps) {
+            for (ep_index: eps_index) {
+			//for (EncodedPackage& that_ep: eps) {
+                EncodedPackage& that_ep = eps.at(ep_index);
 				auto iter = find(that_ep.adjacency.cbegin(),
 					that_ep.adjacency.cend(), index);
 				if (that_ep.adjacency.cend() != iter) {
@@ -104,7 +110,8 @@ Encoder::decode(vector<EncodedPackage>& eps)
 			}
 			s.insert(this_ep);
 			//std::cerr << s.size() << std::endl;
-			eps.pop_back();
+            eps_index.pop_back();
+			//eps.pop_back();
 		} else {
 			break;
 		}
