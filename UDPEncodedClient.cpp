@@ -10,11 +10,17 @@ UDPEncodedClient::UDPEncodedClient(
 	unsigned receiver_port) :
 	UDPClient(e, sender_ip, receiver_ip, sender_port, receiver_port)
 {
+    for (int i = 0; i < 3; i++) {
+        threads.push_back(std::thread(&UDPEncodedClient::decode, this));
+    }
 }
 
 
 UDPEncodedClient::~UDPEncodedClient()
 {
+    for (int i = 0; i < 3; i++) {
+        threads[i].join();
+    }
 }
 
 void
@@ -38,17 +44,14 @@ UDPEncodedClient::do_read()
             buf.resize(size);
             EncodedPackage ep(s.deserialize(buf));
             this_ep_index = ep.getindex();
-            std::cerr << ep << std:: endl;
             if (this_ep_index == last_ep_index) {
                 eps.push_back(ep);
             } else {
-                /*
-                PaddingPackage p(e.decode(eps));
-                pair<char*, int> data(p.getRawData());
-                write(STDOUT_FILENO, data.first, data.second);
-                */
-                std::thread decode_thread(&UDPEncodedClient::decode, this, eps);
-                decode_thread.detach();
+                std::cerr << eps.size() << std::endl;
+                std::lock_guard<std::mutex> locker(mtx);
+                Q.push(eps);
+                std::cerr << "主线程同步队列长度：" << Q.size() << std::endl;
+                Q_empty.notify_one();
                 eps.clear();
                 eps.push_back(ep);
             }
@@ -58,8 +61,15 @@ UDPEncodedClient::do_read()
 }
 
 void
-UDPEncodedClient::decode(vector<EncodedPackage> eps) {
-    PaddingPackage p(e.decode(eps));
-    pair<char*, int> data(p.getRawData());
-    write(STDOUT_FILENO, data.first, data.second);
+UDPEncodedClient::decode() {
+    while (true) {
+        std::unique_lock<std::mutex> locker(mtx);
+        Q_empty.wait(locker, [this]{ return !Q.empty(); });
+        vector<EncodedPackage> eps(Q.front());
+        std::cerr << "工作线程同步队列长度：" << Q.size() << std::endl;
+        Q.pop();
+        PaddingPackage p(e.decode(eps));
+        pair<char*, int> data(p.getRawData());
+        write(STDOUT_FILENO, data.first, data.second);
+    }
 }

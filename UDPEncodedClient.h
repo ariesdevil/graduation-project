@@ -1,5 +1,11 @@
 #pragma once
 #include "UDPClient.h"
+#include <array>
+#include <thread>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+
 class UDPEncodedClient :
 	public UDPClient
 {
@@ -15,6 +21,10 @@ public:
 	virtual void do_read();
 
 private:
-    void decode(vector<EncodedPackage> eps);
+    void decode();
+    std::queue<vector<EncodedPackage>> Q;
+    std::vector<std::thread> threads;
+    std::mutex mtx;
+    std::condition_variable Q_empty;
 };
 
