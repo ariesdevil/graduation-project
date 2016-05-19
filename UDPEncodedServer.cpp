@@ -38,7 +38,7 @@ UDPEncodedServer::do_read()
         vector<EncodedPackage> eps(e.encode(p));
         for (const EncodedPackage ep: eps) {
             std::cerr << ep << std::endl;
-            usleep(1000);
+            usleep(100);
             size_t size = socket.send_to(buffer(s.serialize(ep)), receiver_addr);
         }
         do_read();
