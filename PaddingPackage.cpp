@@ -7,15 +7,20 @@
 #include <cstdint>
 #include <iostream>
 
-int PaddingPackage::index = 0;
+int PaddingPackage::count = 0;
 
 PaddingPackage::PaddingPackage(const Encoder& e)
-	:rsize(0), psize(e.k * e.l), pdata(psize)
+	:index(count), rsize(0), psize(e.k * e.l), pdata(psize)
 {
+	if (count < 65535) {
+		count++;
+	} else {
+		count = 0;
+	}
 }
 
 PaddingPackage::PaddingPackage(const Encoder& e, const vector<char>& rdata)
-	:rsize(rdata.size()), psize(e.k * e.l)
+	:index(count), rsize(rdata.size()), psize(e.k * e.l)
 {
 	assert(rsize + 4 <= psize);
 	pdata.resize(psize);
@@ -23,15 +28,15 @@ PaddingPackage::PaddingPackage(const Encoder& e, const vector<char>& rdata)
 	*(int32_t*)s = rsize;
 	copy(s, s + 4, pdata.begin());
 	copy(rdata.cbegin(), rdata.cend(), pdata.begin() + 4);
-	if (index < 65535) {
-		index++;
+	if (count < 65535) {
+		count++;
 	} else {
-		index = 0;
+		count = 0;
 	}
 }
 
 PaddingPackage::PaddingPackage(const Encoder& e, char* rdata, int rsize)
-	:rsize(rsize), psize(e.k * e.l)
+	:index(count), rsize(rsize), psize(e.k * e.l)
 {
 	assert(rsize + 4 <= psize);
 	pdata.resize(psize);
@@ -39,11 +44,11 @@ PaddingPackage::PaddingPackage(const Encoder& e, char* rdata, int rsize)
 	*(int32_t*)s = rsize;
 	copy(s, s + 4, pdata.begin());
 	copy(rdata, rdata + rsize, pdata.begin() + 4);
-	if (index < 65535) {
-		index++;
+	if (count < 65535) {
+		count++;
 	}
 	else {
-		index = 0;
+		count = 0;
 	}
 }
 
@@ -55,4 +60,9 @@ PaddingPackage::~PaddingPackage()
 pair<char*, int>
 PaddingPackage::getRawData() {
 	return make_pair(pdata.data() + 4, rsize);
+}
+
+int
+PaddingPackage::getindex() {
+    return index;
 }

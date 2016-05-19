@@ -27,7 +27,9 @@ UDPRawClient::run()
 void
 UDPRawClient::do_read()
 {
-    size_t size = socket.receive_from(buffer(buf), sender_addr);
-    write(STDOUT_FILENO, buf.data(), size);
-    do_read();
+    while (true) {
+        size_t size = socket.receive_from(buffer(buf), sender_addr);
+        write(STDOUT_FILENO, buf.data(), size);
+        do_read();
+    }
 }

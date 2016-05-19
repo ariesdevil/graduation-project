@@ -26,8 +26,9 @@ void UDPRawServer::run()
 void
 UDPRawServer::do_read()
 {
-    size_t size = read(STDIN_FILENO, buf.data(), buf.size());
-    write(STDOUT_FILENO, buf.data(), size);
-    socket.send_to(buffer(buf, size), receiver_addr);
-    do_read();
+    while (true) {
+        size_t size = read(STDIN_FILENO, buf.data(), buf.size());
+        write(STDOUT_FILENO, buf.data(), size);
+        socket.send_to(buffer(buf, size), receiver_addr);
+    }
 }

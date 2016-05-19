@@ -17,10 +17,12 @@ public:
 	PaddingPackage(const Encoder& e, char* rdata, int rsize);
 	~PaddingPackage();
 	pair<char*, int> getRawData();
+    int getindex();
 
 
 private:
-	static int index; //原始数据的编号
+	static int count; //原始数据的编号
+    int index;
 	int rsize; //原始数据大小
 	int psize; //补零和添加长度头后的数据大小
 	vector<char> pdata; //补零后的数据

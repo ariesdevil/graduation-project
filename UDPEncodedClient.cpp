@@ -9,8 +9,8 @@ UDPEncodedClient::UDPEncodedClient(
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPClient(e, sender_ip, receiver_ip, sender_port, receiver_port),
-    last_ep_index(1),
-    this_ep_index(1)
+    last_ep_index(0),
+    this_ep_index(0)
 {
     des_thd = std::thread(&UDPEncodedClient::deserialize, this);
     dec_thd = std::thread(&UDPEncodedClient::decode, this);
