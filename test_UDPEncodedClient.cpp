@@ -5,7 +5,7 @@ main(int argc, char* argv[]) {
     if (argc != 3) {
         fprintf(stderr, "./UDPRawServer <sender ip> <receiver ip>\n");
     } else {
-        Encoder e(10, 50, 512, {
+        Encoder e(10, 60, 512, {
                 make_pair(0, 0),
                 make_pair(1, 0.1),
                 make_pair(2, 0.5),

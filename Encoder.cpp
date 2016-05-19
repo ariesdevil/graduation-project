@@ -53,21 +53,26 @@ Encoder::encode(const PaddingPackage& p)
 {
 	vector<EncodedPackage> vec;
 	for (int i = 0; i < m; i++) {
-		EncodedPackage ep;
-        ep.index = p.index;
-		ep.d = popd();
-		ep.adjacency = choose(ep.d);
-		ep.data = vector<char>(l);
-
-		for (int index: ep.adjacency) {
-			for (int i = 0; i < l; i++) {
-				ep.data[i] ^= p.pdata[index * l + i];
-			}
-		}
-        //std::cerr << ep << std::endl;
-		vec.push_back(ep);
+		vec.push_back(pop(p));
 	}
 	return vec;
+}
+
+EncodedPackage
+Encoder::pop(const PaddingPackage& p) {
+    EncodedPackage ep;
+    ep.index = p.index;
+    ep.d = popd();
+    ep.adjacency = choose(ep.d);
+    ep.data = vector<char>(l);
+
+    for (int index: ep.adjacency) {
+        for (int i = 0; i < l; i++) {
+            ep.data[i] ^= p.pdata[index * l + i];
+        }
+    }
+    //std::cerr << ep << std::endl;
+    return ep;
 }
 
 PaddingPackage

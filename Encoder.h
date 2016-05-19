@@ -35,6 +35,7 @@ public:
 	~Encoder();
 
 	vector<EncodedPackage> encode(const PaddingPackage& p);
+    EncodedPackage pop(const PaddingPackage& p);
 	PaddingPackage decode(vector<EncodedPackage>& eps);
     int getk();
     int getm();

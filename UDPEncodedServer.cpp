@@ -31,16 +31,16 @@ UDPEncodedServer::run()
 void
 UDPEncodedServer::do_read()
 {
-    size_t size = read(STDIN_FILENO, buf.data(), buf.size());
-    if (size != 0) {
-        write(STDOUT_FILENO, buf.data(), size);
-        PaddingPackage p(e, buf);
-        vector<EncodedPackage> eps(e.encode(p));
-        for (const EncodedPackage ep: eps) {
-            std::cerr << ep << std::endl;
-            usleep(100);
-            size_t size = socket.send_to(buffer(s.serialize(ep)), receiver_addr);
+    while (true) {
+        size_t size = read(STDIN_FILENO, buf.data(), buf.size());
+        if (size != 0) {
+            write(STDOUT_FILENO, buf.data(), size);
+            PaddingPackage p(e, buf);
+            for (int i = 0; i < e.getm(); i++) {
+                EncodedPackage ep(std::move(e.pop(p)));
+                std::cerr << ep << std::endl;
+                size_t size = socket.send_to(buffer(s.serialize(ep)), receiver_addr);
+            }
         }
-        do_read();
     }
 }
