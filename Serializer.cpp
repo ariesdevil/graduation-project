@@ -1,7 +1,7 @@
 #include "Serializer.h"
 #include <algorithm>
 #include <cstdint>
-#include <cstdint>
+#include <cassert>
 
 using std::copy;
 
@@ -40,6 +40,7 @@ Serializer::serialize(const EncodedPackage & ep)
 EncodedPackage
 Serializer::deserialize(const vector<char>& rd)
 {
+    assert(rd.size() >= 4 * 2);
 	EncodedPackage ep;
 
 	ep.index = *(int32_t*)rd.data();
@@ -52,6 +53,27 @@ Serializer::deserialize(const vector<char>& rd)
 	}
 
 	ep.data.insert(ep.data.end(), rd.begin() + 4 * (2 + ep.d), rd.end());
+
+	return ep;
+}
+
+
+EncodedPackage
+Serializer::deserialize(const vector<char>& rd, int N)
+{
+    assert(N >= 4 * 2);
+	EncodedPackage ep;
+
+	ep.index = *(int32_t*)rd.data();
+
+	ep.d = *(int32_t*)(rd.data() + 4);
+
+	for (int i = 0; i < ep.d; i++) {
+		int d = *(int32_t*)(rd.data() + 4 * (2 + i));
+		ep.adjacency.push_back(d);
+	}
+
+	ep.data.insert(ep.data.end(), rd.begin() + 4 * (2 + ep.d), rd.begin() + N);
 
 	return ep;
 }

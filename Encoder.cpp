@@ -2,6 +2,7 @@
 #include "EncodedPackage.h"
 #include "PaddingPackage.h"
 #include <algorithm>
+#include <numeric>
 #include <set>
 #include <map>
 #include <random>
