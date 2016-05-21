@@ -25,7 +25,6 @@ private:
     std::thread dec_thd;
     BlockQueue<vector<char>> des_Q;
     BlockQueue<vector<EncodedPackage>> dec_Q;
-    std::vector<EncodedPackage> eps;
     int last_ep_index;
     int this_ep_index;
 };

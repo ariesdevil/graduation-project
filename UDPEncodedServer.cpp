@@ -12,7 +12,7 @@ UDPEncodedServer::UDPEncodedServer(
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPServer(e, sender_ip, receiver_ip, sender_port, receiver_port),
-    Q(200)
+    Q(500)
 {
     enc_thd = std::thread(&UDPEncodedServer::encode, this);
 }
