@@ -68,5 +68,5 @@ UDPEncodedClient.o: UDPEncodedClient.cpp
 .PHONY: clean
 
 clean:
-	rm -rf *o 
+	rm -rf *.o *.h264
 	find . -perm -u=rwx -a ! -name "start*" -a ! -regex "\./\..*" -delete

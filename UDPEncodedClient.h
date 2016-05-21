@@ -1,10 +1,7 @@
 #pragma once
 #include "UDPClient.h"
-#include <array>
+#include "BlockQueue.h"
 #include <thread>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
 
 class UDPEncodedClient :
 	public UDPClient
@@ -25,17 +22,10 @@ private:
     void decode();
 
     std::thread des_thd;
-    std::queue<vector<char>> des_Q;
-    std::mutex des_mtx;
-    std::condition_variable des_Q_empty;
-
-    std::vector<EncodedPackage> eps;
-
     std::thread dec_thd;
-    std::queue<vector<EncodedPackage>> dec_Q;
-    std::mutex dec_mtx;
-    std::condition_variable dec_Q_empty;
-
+    BlockQueue<vector<char>> des_Q;
+    BlockQueue<vector<EncodedPackage>> dec_Q;
+    std::vector<EncodedPackage> eps;
     int last_ep_index;
     int this_ep_index;
 };

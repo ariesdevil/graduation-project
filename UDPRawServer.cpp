@@ -30,5 +30,6 @@ UDPRawServer::do_read()
         size_t size = read(STDIN_FILENO, buf.data(), buf.size());
         write(STDOUT_FILENO, buf.data(), size);
         socket.send_to(buffer(buf, size), receiver_addr);
+        usleep(100);
     }
 }

@@ -38,10 +38,8 @@ UDPEncodedClient::do_read()
 	while (true) {
 		size_t size = socket.receive_from(buffer(buf), sender_addr);
         if (size != 0) {
-            std::lock_guard<std::mutex> des_lck(des_mtx);
             des_Q.push(std::vector<char>(buf.begin(), buf.begin() + size));
-            //std::cerr << "解序列队列长度：" << des_Q.size() << std::endl;
-            des_Q_empty.notify_one();
+            //std::cerr << "解序列队列：" << des_Q.size() << std::endl;
         }
 	}
 }
@@ -49,20 +47,15 @@ UDPEncodedClient::do_read()
 
 void
 UDPEncodedClient::deserialize() {
+    vector<EncodedPackage> eps;
     while (true) {
-        std::unique_lock<std::mutex> des_lck(des_mtx);
-        des_Q_empty.wait(des_lck, [this]() { return !des_Q.empty(); });
-        EncodedPackage ep(s.deserialize(des_Q.front()));
-        des_Q.pop();
-        des_lck.unlock();
+        EncodedPackage ep(s.deserialize(des_Q.pop()));
         this_ep_index = ep.getindex();
         if (this_ep_index == last_ep_index) {
             eps.push_back(std::move(ep));
         } else {
-            std::lock_guard<std::mutex> dec_lck(dec_mtx);
             dec_Q.push(std::move(eps));
-            //std::cerr << "解码序列长度：" << dec_Q.size() << std::endl;
-            dec_Q_empty.notify_one();
+            //std::cerr << "解码队列：" << dec_Q.size() << std::endl;
             eps.clear();
             eps.push_back(std::move(ep));
         }
@@ -74,14 +67,13 @@ UDPEncodedClient::deserialize() {
 void
 UDPEncodedClient::decode() {
     while (true) {
-        std::unique_lock<std::mutex> dec_lck(dec_mtx);
-        dec_Q_empty.wait(dec_lck, [this]{ return !dec_Q.empty(); });
-        vector<EncodedPackage> eps(dec_Q.front());
-        //std::cerr << "编码包数量" << eps.size() << std::endl;
+        vector<EncodedPackage> eps(dec_Q.pop());
+        std::cerr << "编码包数量" << eps.size() << std::endl;
+        /*
         for (const auto& ep: eps) {
             std::cerr << ep << std::endl;
         }
-        dec_Q.pop();
+        */
         PaddingPackage p(e.decode(eps));
         pair<char*, int> data(p.getRawData());
         write(STDOUT_FILENO, data.first, data.second);

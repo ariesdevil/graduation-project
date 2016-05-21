@@ -11,15 +11,16 @@ UDPEncodedServer::UDPEncodedServer(
 	const string & receiver_ip,
 	unsigned sender_port,
 	unsigned receiver_port):
-	UDPServer(e, sender_ip, receiver_ip, sender_port, receiver_port)
+	UDPServer(e, sender_ip, receiver_ip, sender_port, receiver_port),
+    Q(200)
 {
-    thd = std::thread(&UDPEncodedServer::encode, this);
+    enc_thd = std::thread(&UDPEncodedServer::encode, this);
 }
 
 
 UDPEncodedServer::~UDPEncodedServer()
 {
-    thd.join();
+    enc_thd.join();
 }
 
 void
@@ -38,10 +39,8 @@ UDPEncodedServer::do_read()
         if (size > 0) {
             write(STDOUT_FILENO, buf.data(), size);
             PaddingPackage p(e, buf.data(), size);
-            std::lock_guard<std::mutex> lck(mtx);
             Q.push(p);
-            //std::cerr << "push: " << p.getindex() << std::endl;
-            Q_empty.notify_one();
+            std::cerr << "编码队列：" << Q.size() << std::endl;
 
         }
     }
@@ -50,15 +49,11 @@ UDPEncodedServer::do_read()
 void
 UDPEncodedServer::encode() {
     while (true) {
-        std::unique_lock<std::mutex> lck(mtx);
-        Q_empty.wait(lck, [this]{ return !Q.empty(); });
-        //std::cerr << "pop: " << Q.front().getindex() << std::endl;
-        PaddingPackage p(Q.front());
-        Q.pop();
+        PaddingPackage p(Q.pop());
         for (int i = 0; i < e.getm(); i++) {
             EncodedPackage ep(e.pop(p));
             //std::cerr << ep << std::endl;
-            size_t size = socket.send_to(buffer(s.serialize(ep)), receiver_addr);
+            socket.send_to(buffer(s.serialize(ep)), receiver_addr);
             usleep(100);
         }
     }

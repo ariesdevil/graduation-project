@@ -1,10 +1,8 @@
 #pragma once
-#include <thread>
-#include <queue>
-#include <mutex>
-#include <condition_variable>
-
 #include "UDPServer.h"
+#include "BlockQueue.h"
+#include <thread>
+
 class UDPEncodedServer :
 	public UDPServer
 {
@@ -22,10 +20,7 @@ public:
 private:
     void encode();
 
-    std::thread thd;
-    //std::queue<PaddingPackage> Q;
-    std::queue<PaddingPackage> Q;
-    std::mutex mtx;
-    std::condition_variable Q_empty;
+    std::thread enc_thd;
+    BlockQueue<PaddingPackage> Q;
 };
 

@@ -82,7 +82,7 @@ Encoder::decode(vector<EncodedPackage>& eps)
 	PaddingPackage p(*this);
 	set<EncodedPackage> s;
     vector<int> eps_index;
-    for (int i = 0; i < eps.size(); i++) {
+    for (size_t i = 0; i < eps.size(); i++) {
         eps_index.push_back(i);
     }
 
