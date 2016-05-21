@@ -2,3 +2,8 @@
 *.o
 log
 a.out
+test_Encoder
+test_UDPEncodedClient
+test_UDPEncodedServer
+test_UDPRawClient
+test_UDPRawServer
