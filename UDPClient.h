@@ -4,7 +4,6 @@
 #include <string>
 #include <boost/asio.hpp>
 
-using std::string;
 using namespace boost::asio;
 using namespace boost::asio::ip;
 
@@ -13,8 +12,8 @@ class UDPClient
 public:
 	UDPClient(
 		const Encoder& e,
-		const string& sender_ip,
-		const string& receiver_ip,
+		const std::string& sender_ip,
+		const std::string& receiver_ip,
 		unsigned sender_port = 8080,
 		unsigned receiver_port = 8080);
 	~UDPClient();
@@ -24,7 +23,7 @@ public:
 protected:
 	Encoder e;
 	Serializer s;
-	vector<char> buf;
+    std::vector<char> buf;
 	io_service ioservice;
 	udp::endpoint sender_addr;
 	udp::endpoint receiver_addr;

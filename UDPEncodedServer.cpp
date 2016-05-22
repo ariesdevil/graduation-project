@@ -7,8 +7,8 @@
 
 UDPEncodedServer::UDPEncodedServer(
 	const Encoder & e,
-	const string & sender_ip,
-	const string & receiver_ip,
+	const std::string & sender_ip,
+	const std::string & receiver_ip,
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPServer(e, sender_ip, receiver_ip, sender_port, receiver_port),
@@ -50,7 +50,7 @@ void
 UDPEncodedServer::encode() {
     while (true) {
         PaddingPackage p(Q.pop());
-        for (int i = 0; i < e.getm(); i++) {
+        for (size_t i = 0; i < e.getm(); i++) {
             EncodedPackage ep(e.pop(p));
             //std::cerr << ep << std::endl;
             socket.send_to(buffer(s.serialize(ep)), receiver_addr);

@@ -2,9 +2,6 @@
 #include <vector>
 #include <iostream>
 
-using std::vector;
-using std::ostream;
-
 class EncodedPackage
 {
 	friend class Encoder;
@@ -13,18 +10,18 @@ class EncodedPackage
 	friend bool operator!=(const EncodedPackage& lep, const EncodedPackage& rep);
 	friend bool operator<(const EncodedPackage& lep, const EncodedPackage& rep);
 	friend bool operator>(const EncodedPackage& lep, const EncodedPackage& rep);
-	friend ostream& operator<<(ostream& os, const EncodedPackage& ep);
+	friend std::ostream& operator<<(std::ostream& os, const EncodedPackage& ep);
 
 public:
 	EncodedPackage();
 	~EncodedPackage();
-	int getd();
-	int getindex();
+	unsigned getd();
+	unsigned getindex();
 
 private:
-	int index; //所属原包的索引
-	int d; //此编码包的度
-	vector<int> adjacency; //邻接关系
-	vector<char> data; //编码后的数据
+	unsigned index; //所属原包的索引
+	unsigned d; //此编码包的度
+    std::vector<unsigned> adjacency; //邻接关系
+    std::vector<char> data; //编码后的数据
 };
 

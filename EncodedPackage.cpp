@@ -31,21 +31,21 @@ operator>(const EncodedPackage& lep, const EncodedPackage& rep) {
 	return lep.d > rep.d;
 }
 
-ostream&
-operator<<(ostream& os, const EncodedPackage& ep) {
+std::ostream&
+operator<<(std::ostream& os, const EncodedPackage& ep) {
     os << ep.index << " " << ep.d;
-	for (int d: ep.adjacency) {
+	for (unsigned d: ep.adjacency) {
 		os << " " << d;
 	}
 	return os;
 }
 
-int
+unsigned
 EncodedPackage::getd() {
 	return d;
 }
 
-int
+unsigned
 EncodedPackage::getindex()
 {
 	return index;

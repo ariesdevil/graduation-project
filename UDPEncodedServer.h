@@ -9,8 +9,8 @@ class UDPEncodedServer :
 public:
 	UDPEncodedServer(
 		const Encoder& e,
-		const string& sender_ip,
-		const string& receiver_ip,
+		const std::string& sender_ip,
+		const std::string& receiver_ip,
 		unsigned sender_port = 8080,
 		unsigned receiver_port = 8080);
 	~UDPEncodedServer();

@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <iostream>
 
-int PaddingPackage::count = 0;
+size_t PaddingPackage::count = 0;
 
 PaddingPackage::PaddingPackage(const Encoder& e)
 	:index(count), rsize(0), psize(e.k * e.l), pdata(psize)
@@ -19,13 +19,13 @@ PaddingPackage::PaddingPackage(const Encoder& e)
 	}
 }
 
-PaddingPackage::PaddingPackage(const Encoder& e, const vector<char>& rdata)
+PaddingPackage::PaddingPackage(const Encoder& e, const std::vector<char>& rdata)
 	:index(count), rsize(rdata.size()), psize(e.k * e.l)
 {
 	assert(rsize + 4 <= psize);
 	pdata.resize(psize);
 	char s[4];
-	*(int32_t*)s = rsize;
+	*(uint32_t*)s = rsize;
 	copy(s, s + 4, pdata.begin());
 	copy(rdata.cbegin(), rdata.cend(), pdata.begin() + 4);
 	if (count < 65535) {
@@ -35,13 +35,13 @@ PaddingPackage::PaddingPackage(const Encoder& e, const vector<char>& rdata)
 	}
 }
 
-PaddingPackage::PaddingPackage(const Encoder& e, char* rdata, int rsize)
+PaddingPackage::PaddingPackage(const Encoder& e, char* rdata, size_t rsize)
 	:index(count), rsize(rsize), psize(e.k * e.l)
 {
 	assert(rsize + 4 <= psize);
 	pdata.resize(psize);
 	char s[4];
-	*(int32_t*)s = rsize;
+	*(uint32_t*)s = rsize;
 	copy(s, s + 4, pdata.begin());
 	copy(rdata, rdata + rsize, pdata.begin() + 4);
 	if (count < 65535) {
@@ -57,12 +57,12 @@ PaddingPackage::~PaddingPackage()
 {
 }
 
-pair<char*, int>
+std::pair<char*, size_t>
 PaddingPackage::getRawData() {
-	return make_pair(pdata.data() + 4, rsize);
+	return std::make_pair(pdata.data() + 4, rsize);
 }
 
-int
+size_t
 PaddingPackage::getindex() {
     return index;
 }

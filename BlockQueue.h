@@ -8,8 +8,7 @@
 template<typename T>
 class BlockQueue {
 public:
-    BlockQueue();
-    BlockQueue(size_t capacity);
+    BlockQueue(size_t capacity=SIZE_MAX);
     void push(const T& e);
     T pop();
     size_t size();
@@ -22,12 +21,6 @@ private:
     std::condition_variable Q_not_empty;
     std::condition_variable Q_not_full;
 };
-
-template<typename T>
-BlockQueue<T>::BlockQueue():
-    capacity(SIZE_MAX)
-{
-}
 
 template<typename T>
 BlockQueue<T>::BlockQueue(size_t capacity):

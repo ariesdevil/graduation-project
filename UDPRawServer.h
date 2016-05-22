@@ -6,8 +6,8 @@ class UDPRawServer :
 public:
 	UDPRawServer(
 		const Encoder& e,
-		const string& sender_ip,
-		const string& receiver_ip,
+		const std::string& sender_ip,
+		const std::string& receiver_ip,
 		unsigned sender_port = 8081,
 		unsigned receiver_port = 8081);
 	~UDPRawServer();

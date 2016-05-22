@@ -3,8 +3,8 @@
 
 UDPRawServer::UDPRawServer(
 	const Encoder & e,
-	const string & sender_ip,
-	const string & receiver_ip,
+	const std::string & sender_ip,
+	const std::string & receiver_ip,
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPServer(e, sender_ip, receiver_ip, sender_port, receiver_port)

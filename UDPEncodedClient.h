@@ -9,8 +9,8 @@ class UDPEncodedClient :
 public:
 	UDPEncodedClient(
 		const Encoder& e,
-		const string& sender_ip,
-		const string& receiver_ip,
+		const std::string& sender_ip,
+		const std::string& receiver_ip,
 		unsigned sender_port = 8080,
 		unsigned receiver_port = 8080);
 	~UDPEncodedClient();
@@ -23,9 +23,9 @@ private:
 
     std::thread des_thd;
     std::thread dec_thd;
-    BlockQueue<vector<char>> des_Q;
-    BlockQueue<vector<EncodedPackage>> dec_Q;
-    int last_ep_index;
-    int this_ep_index;
+    BlockQueue<std::vector<char>> des_Q;
+    BlockQueue<std::vector<EncodedPackage>> dec_Q;
+    size_t last_ep_index;
+    size_t this_ep_index;
 };
 

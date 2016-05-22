@@ -4,8 +4,8 @@
 
 UDPEncodedClient::UDPEncodedClient(
 	const Encoder & e,
-	const string & sender_ip,
-	const string & receiver_ip,
+	const std::string & sender_ip,
+	const std::string & receiver_ip,
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPClient(e, sender_ip, receiver_ip, sender_port, receiver_port),
@@ -26,7 +26,7 @@ UDPEncodedClient::~UDPEncodedClient()
 void
 UDPEncodedClient::run()
 {
-	buf.resize(e.getl() + 4 * (66 + 1 + 1));
+	buf.resize(e.getl() + 4 * (e.getdeg_max() + 1 + 1));
 	do_read();
 	ioservice.run();
 }
@@ -34,7 +34,7 @@ UDPEncodedClient::run()
 void
 UDPEncodedClient::do_read()
 {
-	vector<EncodedPackage> eps;
+    std::vector<EncodedPackage> eps;
 	while (true) {
 		size_t size = socket.receive_from(buffer(buf), sender_addr);
         if (size != 0) {
@@ -47,7 +47,7 @@ UDPEncodedClient::do_read()
 
 void
 UDPEncodedClient::deserialize() {
-    vector<EncodedPackage> eps;
+    std::vector<EncodedPackage> eps;
     while (true) {
         EncodedPackage ep(s.deserialize(des_Q.pop()));
         this_ep_index = ep.getindex();
@@ -67,7 +67,7 @@ UDPEncodedClient::deserialize() {
 void
 UDPEncodedClient::decode() {
     while (true) {
-        vector<EncodedPackage> eps(dec_Q.pop());
+        std::vector<EncodedPackage> eps(dec_Q.pop());
         std::cerr << "编码包数量" << eps.size() << std::endl;
         /*
         for (const auto& ep: eps) {
@@ -75,7 +75,7 @@ UDPEncodedClient::decode() {
         }
         */
         PaddingPackage p(e.decode(eps));
-        pair<char*, int> data(p.getRawData());
+        std::pair<char*, size_t> data(p.getRawData());
         write(STDOUT_FILENO, data.first, data.second);
     }
 }

@@ -12,32 +12,19 @@
 #include <iostream>
 #include <cstdint>
 
-using std::find;
-using std::copy;
-using std::sort;
-using std::unique;
-using std::distance;
-using std::make_heap;
-using std::sort_heap;
-using std::set;
-using std::map;
-using std::default_random_engine;
-using std::random_device;
-using std::uniform_real_distribution; 
-
-Encoder::Encoder(int k, int m, int l, const map<int, double>& pdf):
+Encoder::Encoder(const unsigned k, const unsigned m, const unsigned l, const std::map<unsigned, double>& pdf):
 	k(k), m(m), l(l),
-    pdf(vector<pair<int, double>>(pdf.cbegin(), pdf.cend()))
+    pdf(std::vector<std::pair<unsigned, double>>(pdf.cbegin(), pdf.cend()))
 {
 	srand(time(NULL));
-    sort(this->pdf.begin(), this->pdf.end(),
-            [](const pair<int, double> i, const pair<int, double> j) {
+    std::sort(this->pdf.begin(), this->pdf.end(),
+            [](const std::pair<unsigned, double> i, const std::pair<unsigned, double> j) {
                 return i < j;
             });
 	for (auto iter = this->pdf.cbegin(); iter != this->pdf.cend(); iter++) {
-		cdf.push_back(make_pair(iter->first, 
+		cdf.push_back(std::make_pair(iter->first, 
 			accumulate(this->pdf.cbegin(), iter + 1, 0.0,
-			[](double partialResult, pair<int, double> next) { 
+			[](double partialResult, std::pair<unsigned, double> next) { 
                 return partialResult + next.second;
             })));
 	}
@@ -48,11 +35,11 @@ Encoder::~Encoder()
 {
 }
 
-vector<EncodedPackage>
+std::vector<EncodedPackage>
 Encoder::encode(const PaddingPackage& p)
 {
-	vector<EncodedPackage> vec;
-	for (int i = 0; i < m; i++) {
+    std::vector<EncodedPackage> vec;
+	for (size_t i = 0; i < m; i++) {
 		vec.push_back(pop(p));
 	}
 	return vec;
@@ -64,10 +51,10 @@ Encoder::pop(const PaddingPackage& p) {
     ep.index = p.index;
     ep.d = popd();
     ep.adjacency = choose(ep.d);
-    ep.data = vector<char>(l);
+    ep.data = std::vector<char>(l);
 
-    for (int index: ep.adjacency) {
-        for (int i = 0; i < l; i++) {
+    for (unsigned index: ep.adjacency) {
+        for (size_t i = 0; i < l; i++) {
             ep.data[i] ^= p.pdata[index * l + i];
         }
     }
@@ -76,39 +63,39 @@ Encoder::pop(const PaddingPackage& p) {
 }
 
 PaddingPackage
-Encoder::decode(vector<EncodedPackage>& eps)
+Encoder::decode(std::vector<EncodedPackage>& eps)
 {
 	assert(eps.size() <= m);
 	PaddingPackage p(*this);
-	set<EncodedPackage> s;
-    vector<int> eps_index;
+    std::set<EncodedPackage> s;
+    std::vector<unsigned> eps_index;
     for (size_t i = 0; i < eps.size(); i++) {
         eps_index.push_back(i);
     }
 
-	//auto end=unique(eps.begin(), eps.end());
+	//auto end=std::unique(eps.begin(), eps.end());
 	//eps.erase(end, eps.end());
-	auto compare = [&eps](const int i, const int j)
+	auto compare = [&eps](const unsigned i, const unsigned j)
 					{ return eps.at(i) > eps.at(j); };
 	while (!eps_index.empty()) {
-		make_heap(eps_index.begin(), eps_index.end(), compare);
+        std::make_heap(eps_index.begin(), eps_index.end(), compare);
 		pop_heap(eps_index.begin(), eps_index.end(), compare);
 		const EncodedPackage& this_ep = eps.at(eps_index.back());
 		if (this_ep.d == 1) {
-			int index = this_ep.adjacency.front();
-            for (int ep_index: eps_index) {
+			unsigned index = this_ep.adjacency.front();
+            for (unsigned ep_index: eps_index) {
 			//for (EncodedPackage& that_ep: eps) {
                 EncodedPackage& that_ep = eps.at(ep_index);
-				auto iter = find(that_ep.adjacency.cbegin(),
+				auto iter = std::find(that_ep.adjacency.cbegin(),
 					that_ep.adjacency.cend(), index);
 				if (that_ep.adjacency.cend() != iter) {
 					if (this_ep == that_ep) {
-						copy(this_ep.data.cbegin(), this_ep.data.cend(),
+                        std::copy(this_ep.data.cbegin(), this_ep.data.cend(),
 							p.pdata.begin() + index * l);
 					} else {
 						that_ep.d--;
 						that_ep.adjacency.erase(iter);
-						for (int j = 0; j < l; j++) {
+						for (size_t j = 0; j < l; j++) {
 							that_ep.data[j] ^= this_ep.data[j];
 						}
 					}
@@ -123,7 +110,7 @@ Encoder::decode(vector<EncodedPackage>& eps)
 		}
 	}
 
-	int size = *(int32_t*)p.pdata.data();
+	size_t size = *(uint32_t*)p.pdata.data();
 	p.rsize = size ? size : (p.psize - 4);
 
     /*
@@ -141,14 +128,14 @@ Encoder::decode(vector<EncodedPackage>& eps)
 	return p;
 }
 
-vector<int>
-Encoder::choose(int d)
+std::vector<unsigned>
+Encoder::choose(unsigned d)
 {
 	assert(d <= k);
-	vector<int> v;
-	int remain = k;
-	int select = d;
-	for (int i = 0; i < k; i++) {
+    std::vector<unsigned> v;
+	unsigned remain = k;
+	unsigned select = d;
+	for (size_t i = 0; i < k; i++) {
 		if (rand() % remain < select) {
 			v.push_back(i);
 			select--;
@@ -158,34 +145,34 @@ Encoder::choose(int d)
 	return v;
 }
 
-int
+unsigned
 Encoder::popd() {
 
-    random_device rd;
-    default_random_engine engine(rd());
-	uniform_real_distribution<double> distribution;
+    std::random_device rd;
+    std::default_random_engine engine(rd());
+    std::uniform_real_distribution<double> distribution;
 	double random = distribution(engine);
-	for (auto c : cdf) {
+	for (const auto& c : cdf) {
 		if (random < c.second)
 			return c.first;
 	}
-	return -1;
+	return 0;
 }
 
 
-int
+unsigned
 Encoder::getk() {
     return k;
 }
-int
+unsigned
 Encoder::getm() {
     return m;
 }
-int
+unsigned
 Encoder::getl() {
     return l;
 }
-int
+unsigned
 Encoder::getdeg_max() {
     return pdf.back().first;
 }

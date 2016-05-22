@@ -5,8 +5,8 @@
 
 UDPClient::UDPClient(
 	const Encoder & e,
-	const string & sender_ip,
-	const string & receiver_ip,
+	const std::string & sender_ip,
+	const std::string & receiver_ip,
 	unsigned sender_port,
 	unsigned receiver_port):
 	e(e),
