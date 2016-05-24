@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-I. -Wall -std=c++11 -O3 
+CFLAGS=-I. -Wall -std=c++11 -lm -O3 
 
 OBJS= EncodedPackage.o Encoder.o PaddingPackage.o Serializer.o \
 
@@ -46,6 +46,9 @@ PaddingPackage.o: PaddingPackage.cpp
 
 Serializer.o: Serializer.cpp
 	$(CC) $(CFLAGS) -c Serializer.cpp
+
+RobustSolitonDistribution.o: RobustSolitonDistribution.cpp
+	$(CC) $(CFLAGS) -c RobustSolitonDistribution.cpp
 
 UDPServer.o: UDPServer.cpp
 	$(CC) $(CFLAGS) -c UDPServer.cpp

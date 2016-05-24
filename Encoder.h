@@ -30,12 +30,12 @@ public:
     std::vector<EncodedPackage> encode(const PaddingPackage& p);
     EncodedPackage pop(const PaddingPackage& p);
 	PaddingPackage decode(std::vector<EncodedPackage>& eps);
-    unsigned getk();
-    unsigned getm();
-    unsigned getl();
-    unsigned getdeg_max();
+    unsigned getk() const;
+    unsigned getm() const;
+    unsigned getl() const;
+    unsigned getdeg_max() const;
 
-public:
+private:
     unsigned popd();
     std::vector<unsigned> choose(unsigned d); //从k个包里面随机选取d个包
 

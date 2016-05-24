@@ -10,7 +10,7 @@
 size_t PaddingPackage::count = 0;
 
 PaddingPackage::PaddingPackage(const Encoder& e)
-	:index(count), rsize(0), psize(e.k * e.l), pdata(psize)
+	:index(count), rsize(0), psize(e.getk() * e.getl()), pdata(psize)
 {
 	if (count < 65535) {
 		count++;
@@ -20,7 +20,7 @@ PaddingPackage::PaddingPackage(const Encoder& e)
 }
 
 PaddingPackage::PaddingPackage(const Encoder& e, const std::vector<char>& rdata)
-	:index(count), rsize(rdata.size()), psize(e.k * e.l)
+	:index(count), rsize(rdata.size()), psize(e.getk() * e.getl())
 {
 	assert(rsize + 4 <= psize);
 	pdata.resize(psize);
@@ -36,7 +36,7 @@ PaddingPackage::PaddingPackage(const Encoder& e, const std::vector<char>& rdata)
 }
 
 PaddingPackage::PaddingPackage(const Encoder& e, char* rdata, size_t rsize)
-	:index(count), rsize(rsize), psize(e.k * e.l)
+	:index(count), rsize(rsize), psize(e.getk() * e.getl())
 {
 	assert(rsize + 4 <= psize);
 	pdata.resize(psize);

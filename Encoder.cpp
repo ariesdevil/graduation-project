@@ -161,18 +161,18 @@ Encoder::popd() {
 
 
 unsigned
-Encoder::getk() {
+Encoder::getk() const {
     return k;
 }
 unsigned
-Encoder::getm() {
+Encoder::getm() const {
     return m;
 }
 unsigned
-Encoder::getl() {
+Encoder::getl() const {
     return l;
 }
 unsigned
-Encoder::getdeg_max() {
+Encoder::getdeg_max() const {
     return pdf.back().first;
 }
