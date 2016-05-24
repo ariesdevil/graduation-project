@@ -14,13 +14,13 @@ main(int argc, char* argv[]) {
         std::istreambuf_iterator<char> eof;
         std::vector<char> vec_in(start, eof);
 
-        Encoder e(2000, 3000, 2);
-        Serializer s;
-
         unsigned c = 0;
         double times = 10000;
+
+        Encoder e;
+        Serializer s;
+        PaddingPackage p(e, vec_in);
         for (size_t i = 0; i < times; i++) {
-            PaddingPackage p(e, vec_in);
             std::vector<EncodedPackage> vec_ep(e.encode(p));
             std::vector<std::vector<char>> vec_s;
             for (const EncodedPackage& ep : vec_ep) {
@@ -39,10 +39,10 @@ main(int argc, char* argv[]) {
         }
         std::cout << c / times << std::endl;
 
-        std::ofstream output(argv[2], std::ios::binary);
-        std::ostreambuf_iterator<char> out_iter(output);
+        //std::ofstream output(argv[2], std::ios::binary);
+        //std::ostreambuf_iterator<char> out_iter(output);
         //copy(pp.getRawData().first, pp.getRawData().first + pp.getRawData().second, out_iter);
-        output.close();
+        //output.close();
         input.close();
     }
     return 0;
