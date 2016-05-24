@@ -12,7 +12,7 @@ UDPEncodedServer::UDPEncodedServer(
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPServer(e, sender_ip, receiver_ip, sender_port, receiver_port),
-    Q(500)
+    Q(10)
 {
     enc_thd = std::thread(&UDPEncodedServer::encode, this);
 }
@@ -40,7 +40,7 @@ UDPEncodedServer::do_read()
             write(STDOUT_FILENO, buf.data(), size);
             PaddingPackage p(e, buf.data(), size);
             Q.push(p);
-            std::cerr << "编码队列：" << Q.size() << std::endl;
+            //std::cerr << "编码队列：" << Q.size() << std::endl;
 
         }
     }

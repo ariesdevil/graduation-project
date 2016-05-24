@@ -9,6 +9,7 @@ UDPEncodedClient::UDPEncodedClient(
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPClient(e, sender_ip, receiver_ip, sender_port, receiver_port),
+    dec_Q(200),
     last_ep_index(0),
     this_ep_index(0)
 {
@@ -68,7 +69,7 @@ void
 UDPEncodedClient::decode() {
     while (true) {
         std::vector<EncodedPackage> eps(dec_Q.pop());
-        std::cerr << "编码包数量" << eps.size() << std::endl;
+        //std::cerr << "编码包数量" << eps.size() << std::endl;
         /*
         for (const auto& ep: eps) {
             std::cerr << ep << std::endl;
