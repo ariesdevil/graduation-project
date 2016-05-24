@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-I. -Wall -std=c++11 -lm -O3 
 
-OBJS= EncodedPackage.o Encoder.o PaddingPackage.o Serializer.o \
+OBJS= EncodedPackage.o Encoder.o PaddingPackage.o Serializer.o RobustSolitonDistribution.o \
 
 all: test_Encoder test_UDPRawServer test_UDPRawClient test_UDPEncodedServer test_UDPEncodedClient
 

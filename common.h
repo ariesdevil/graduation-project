@@ -4,6 +4,8 @@
 #include "Serializer.h"
 #include "EncodedPackage.h"
 #include "PaddingPackage.h"
+#include "RobustSolitonDistribution.h"
+#include "BlockQueue.h"
 #include "UDPRawClient.h"
 #include "UDPRawServer.h"
 #include "UDPEncodedClient.h"

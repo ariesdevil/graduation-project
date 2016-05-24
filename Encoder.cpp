@@ -12,9 +12,8 @@
 #include <iostream>
 #include <cstdint>
 
-Encoder::Encoder(const unsigned k, const unsigned m, const unsigned l, const std::map<unsigned, double>& pdf):
-	k(k), m(m), l(l),
-    pdf(std::vector<std::pair<unsigned, double>>(pdf.cbegin(), pdf.cend()))
+Encoder::Encoder(const unsigned k, const unsigned m, const unsigned l, const std::vector<std::pair<unsigned, double>>& pdf):
+	k(k), m(m), l(l), pdf(pdf)
 {
 	srand(time(NULL));
     std::sort(this->pdf.begin(), this->pdf.end(),

@@ -1,5 +1,5 @@
 #pragma once
-
+#include "RobustSolitonDistribution.h"
 #include <vector>
 #include <map>
 #include <utility>
@@ -11,20 +11,8 @@ class PaddingPackage;
 class Encoder
 {
 public:
-	Encoder(const unsigned k = 2000, const unsigned m = 3000, const unsigned l=128,
-            const std::map<unsigned, double>& pdf = {
-                std::make_pair(0, 0),
-                std::make_pair(1, 0.007971),
-                std::make_pair(2, 0.493570),
-                std::make_pair(3, 0.166220),
-                std::make_pair(4, 0.072646),
-                std::make_pair(5, 0.082558),
-                std::make_pair(8, 0.056058),
-                std::make_pair(9, 0.037229),
-                std::make_pair(19, 0.055590),
-                std::make_pair(65, 0.025023),
-                std::make_pair(66, 0.003135)}
-            );
+	Encoder(const unsigned k = 100, const unsigned m = 200, const unsigned l=512,
+            const std::vector<std::pair<unsigned, double>>& pdf = RobustSolitonDistribution().getpdf());
 	~Encoder();
 
     std::vector<EncodedPackage> encode(const PaddingPackage& p);

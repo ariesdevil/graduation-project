@@ -8,7 +8,7 @@
 class RobustSolitonDistribution {
 public:
     RobustSolitonDistribution(
-            const unsigned k=1000,
+            const unsigned k=100,
             const double c=0.1,
             const double delta=0.5);
     const std::vector<std::pair<unsigned, double>>& getpdf();
