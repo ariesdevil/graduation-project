@@ -1,6 +1,6 @@
 *.h264
 *.o
-log
+log*
 a.out
 test_Encoder
 test_UDPEncodedClient

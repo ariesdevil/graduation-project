@@ -9,7 +9,7 @@ UDPEncodedClient::UDPEncodedClient(
 	unsigned sender_port,
 	unsigned receiver_port):
 	UDPClient(e, sender_ip, receiver_ip, sender_port, receiver_port),
-    dec_Q(200),
+    dec_Q(4),
     last_ep_index(0),
     this_ep_index(0)
 {
