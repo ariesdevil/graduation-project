@@ -72,4 +72,4 @@ UDPEncodedClient.o: UDPEncodedClient.cpp
 
 clean:
 	rm -rf *.o *.h264
-	find . -perm -u=rwx -a ! -name "start*" -a ! -regex "\./\..*" -delete
+	find . -perm -u=rwx -a ! -name "st*" -a ! -regex "\./\..*" -delete
